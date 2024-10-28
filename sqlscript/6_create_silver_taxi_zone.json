@@ -5,7 +5,7 @@
 			"name": "nyc_taxi/ldw"
 		},
 		"content": {
-			"query": "USE nyc_taxi_ldw;\n\n-- create external table as select (CETAS) to convert csv -> parquet \nCREATE EXTERNAL TABLE silver.taxi_zone\nWITH(\n    LOCATION = 'silver/taxi_zone',\n    DATA_SOURCE = nyc_taxi_src,\n    FILE_FORMAT = parquet_file_format\n)\nAS\nSELECT *\n FROM bronze.taxi_zone;\n\n SELECT * from silver.taxi_zone;\n\n -- DROP EXTERNAL TABLE silver.taxi_zone;",
+			"query": "USE nyc_taxi_ldw;\n\n-- create external table as select (CETAS) to convert csv -> parquet \nCREATE EXTERNAL TABLE silver.taxi_zone\nWITH(\n    LOCATION = 'silver/taxi_zone',\n    DATA_SOURCE = nyc_taxi_src,\n    FILE_FORMAT = parquet_file_format\n)\nAS\nSELECT *\n FROM bronze.taxi_zone;\n\n SELECT * from silver.taxi_zone\n WHERE LocationID = 43;\n\n -- DROP EXTERNAL TABLE silver.taxi_zone;",
 			"metadata": {
 				"language": "sql"
 			},
