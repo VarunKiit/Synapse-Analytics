@@ -1,0 +1,20 @@
+{
+	"name": "6_explore_trip_data_green_parquet",
+	"properties": {
+		"folder": {
+			"name": "nyc_taxi/discovery"
+		},
+		"content": {
+			"query": "use nyc_taxi_discovery;\n\n-- Read data from single Parquet file\nSELECT\n    TOP 100 *\nFROM\n    OPENROWSET(\n        BULK 'trip_data_green_parquet/year=2020/month=01/part-00000-tid-6133789922049958496-2e489315-890a-4453-ae93-a104be9a6f06-106-1-c000.snappy.parquet',\n        DATA_SOURCE = 'nyc_taxi_data_raw',\n        FORMAT = 'PARQUET'\n    ) AS [result]\n\n-- Read data from all parquet files\n\nSELECT Top 100 *\nFROM OPENROWSET(\n    BULK 'trip_data_green_parquet/year=*/month=*/*',\n    DATA_SOURCE = 'nyc_taxi_data_raw',\n    FORMAT = 'PARQUET'\n) AS [result]\n\n-- Read data from selected parquet files\nSELECT Top 100 \nresult.filename() AS Parquet_File,\nresult.filepath(1) AS YEAR,\nresult.filepath(2) AS MONTH,\nCOUNT(1) as record_count\nFROM OPENROWSET(\n    BULK 'trip_data_green_parquet/year=*/month=*/*',\n    DATA_SOURCE = 'nyc_taxi_data_raw',\n    FORMAT = 'PARQUET'\n) AS [result]\nWHERE result.filepath(1) = '2020'AND result.filepath(2) IN('02', '09', '06')\nGROUP BY result.filename(), result.filepath(1), result.filepath(2)\nORDER BY result.filename(), result.filepath(1), result.filepath(2);",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "nyc_taxi_discovery",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

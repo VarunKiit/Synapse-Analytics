@@ -1,0 +1,20 @@
+{
+	"name": "7_create_silver_calendar",
+	"properties": {
+		"folder": {
+			"name": "nyc_taxi/ldw"
+		},
+		"content": {
+			"query": "USE nyc_taxi_ldw;\n\n-- create external table as select (CETAS) to convert csv -> parquet calendar\nCREATE EXTERNAL TABLE silver.calendar\nWITH(\n    LOCATION = 'silver/calendar',\n    DATA_SOURCE = nyc_taxi_src,\n    FILE_FORMAT = parquet_file_format\n)\nAS\nSELECT * \nFROM bronze.calendar;\n\nSELECT TOP 100 * FROM silver.calendar;\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "nyc_taxi_ldw",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

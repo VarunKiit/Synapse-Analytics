@@ -1,0 +1,20 @@
+{
+	"name": "9_data_quality_checks",
+	"properties": {
+		"folder": {
+			"name": "nyc_taxi/discovery"
+		},
+		"content": {
+			"query": "use nyc_taxi_discovery;\n\n-- Identify any data quality issues in trip total amount\n\nSELECT\n    MIN(total_amount) as min_total_amount,\n    MAX(total_amount) as max_total_amount,\n    AVG(total_amount) as avg_total_amount,\n    COUNT(*) as total_records,\n    COUNT(total_amount) as not_null_total_records\n \nFROM\n    OPENROWSET(\n        BULK 'trip_data_green_parquet/year=2020/month=01/',\n        DATA_SOURCE = 'nyc_taxi_data_raw',\n        FORMAT = 'PARQUET'\n    ) AS [result]\n\n-- Find records with -ve amounts\nSELECT payment_type,\n       count(1) as total_records\nFROM\n    OPENROWSET(\n        BULK 'trip_data_green_parquet/year=2020/month=01/',\n        DATA_SOURCE = 'nyc_taxi_data_raw',\n        FORMAT = 'PARQUET'\n    ) AS [result]\nWHERE total_amount < 0\nGROUP BY payment_type\nORDER BY payment_type;",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "nyc_taxi_discovery",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

@@ -1,0 +1,20 @@
+{
+	"name": "1_explore_taxi_zone",
+	"properties": {
+		"folder": {
+			"name": "nyc_taxi/discovery"
+		},
+		"content": {
+			"query": "-- Header set to true and read top 10 rows, field and row terminators are by default\nSELECT\n    TOP 10 *\nFROM\n    OPENROWSET(\n        BULK 'https://synapsergan.dfs.core.windows.net/nyc-taxi-data/raw/taxi_zone.csv',\n        FORMAT = 'CSV',\n        PARSER_VERSION = '2.0',\n        HEADER_ROW = TRUE\n    ) AS [result]\n\n-- Examine data types for the columns\n    EXEC sp_describe_first_result_set N'SELECT\n    TOP 10 *\nFROM\n    OPENROWSET(\n        BULK ''https://synapsergan.dfs.core.windows.net/nyc-taxi-data/raw/taxi_zone.csv'',\n        FORMAT = ''CSV'',\n        PARSER_VERSION = ''2.0'',\n        HEADER_ROW = TRUE\n    ) AS [result]'\n\n-- Find max lengths of columns\nselect MAX(LEN(LocationID)),\n       MAX(LEN(Borough)),\n       MAX(LEN(Zone)),\n       MAX(LEN(service_zone))\nfrom \n    OPENROWSET(\n        BULK 'https://synapsergan.dfs.core.windows.net/nyc-taxi-data/raw/taxi_zone.csv',\n        FORMAT = 'CSV',\n        PARSER_VERSION = '2.0',\n        HEADER_ROW = TRUE\n    ) AS [result]\n\n-- Use WITH clause to provide explicit data types\nselect *\nfrom \n    OPENROWSET(\n        BULK 'https://synapsergan.dfs.core.windows.net/nyc-taxi-data/raw/taxi_zone.csv',\n        FORMAT = 'CSV',\n        PARSER_VERSION = '2.0',\n        HEADER_ROW = TRUE\n)\nWITH (\n    LocationID SMALLINT,\n    Borough VARCHAR(15),\n    Zone VARCHAR(50),\n    service_zone VARCHAR(15)\n) AS [result]\n\n-- Examine collation in database\nSELECT name, collation_name from sys.databases;\n\n-- Change collation in our data\nselect *\nfrom \n    OPENROWSET(\n        BULK 'https://synapsergan.dfs.core.windows.net/nyc-taxi-data/raw/taxi_zone.csv',\n        FORMAT = 'CSV',\n        PARSER_VERSION = '2.0',\n        HEADER_ROW = TRUE\n)\nWITH (\n    LocationID SMALLINT,\n    Borough VARCHAR(15) COLLATE Latin1_General_100_CI_AI_SC_UTF8,\n    Zone VARCHAR(50) COLLATE Latin1_General_100_CI_AI_SC_UTF8,\n    service_zone VARCHAR(15) COLLATE Latin1_General_100_CI_AI_SC_UTF8\n) AS [result]\n\n-- Create database\nCREATE DATABASE nyc_taxi_discovery;\n-- Use database\nUSE nyc_taxi_discovery;\n\n-- Changing collation in database iteself\nALTER DATABASE nyc_taxi_discovery COLLATE Latin1_General_100_CI_AI_SC_UTF8;\n\n-- Read data from a subset of colmuns\nselect *\nfrom \n    OPENROWSET(\n        BULK 'https://synapsergan.dfs.core.windows.net/nyc-taxi-data/raw/taxi_zone_without_header.csv',\n        FORMAT = 'CSV',\n        PARSER_VERSION = '2.0'\n)\nWITH (\n    Borough VARCHAR(15) 2,\n    Zone VARCHAR(50) 3\n) AS [result]\n\n-- Create external Data Source\nCREATE EXTERNAL DATA SOURCE nyc_taxi_data_raw\nWITH(\n    LOCATION = 'https://synapsergan.dfs.core.windows.net/nyc-taxi-data/raw'\n)\n\n-- Read file using data source\nselect *\nfrom \n    OPENROWSET(\n        BULK 'taxi_zone.csv',\n        DATA_SOURCE = 'nyc_taxi_data_raw',\n        FORMAT = 'CSV',\n        PARSER_VERSION = '2.0',\n        HEADER_ROW = TRUE\n)\nWITH (\n    LocationID SMALLINT ,\n    Borough VARCHAR(15) COLLATE Latin1_General_100_CI_AI_SC_UTF8 ,\n    Zone VARCHAR(50) COLLATE Latin1_General_100_CI_AI_SC_UTF8,\n    service_zone VARCHAR(15) COLLATE Latin1_General_100_CI_AI_SC_UTF8\n) AS [result]\n\n\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "nyc_taxi_discovery",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}
