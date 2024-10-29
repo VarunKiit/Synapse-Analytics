@@ -118,6 +118,90 @@
 											"enablePartitionDiscovery": false
 										}
 									}
+								},
+								{
+									"name": "Create Partition",
+									"type": "SqlServerStoredProcedure",
+									"dependsOn": [
+										{
+											"activity": "Delete Partition",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"storedProcedureName": "[silver].[sp_silver_trip_data_green]",
+										"storedProcedureParameters": {
+											"MONTH": {
+												"value": {
+													"value": "@item().MONTH",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"YEAR": {
+												"value": {
+													"value": "@item().YEAR",
+													"type": "Expression"
+												},
+												"type": "String"
+											}
+										}
+									},
+									"linkedServiceName": {
+										"referenceName": "ls_serverless_sql_pool_db_nyc_taxi_ldw",
+										"type": "LinkedServiceReference"
+									}
+								},
+								{
+									"name": "Create Silver View",
+									"type": "Script",
+									"dependsOn": [
+										{
+											"activity": "Create Partition",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"linkedServiceName": {
+										"referenceName": "ls_serverless_sql_pool_db_nyc_taxi_ldw",
+										"type": "LinkedServiceReference"
+									},
+									"typeProperties": {
+										"scripts": [
+											{
+												"type": "NonQuery",
+												"text": "USE nyc_taxi_ldw;"
+											},
+											{
+												"type": "NonQuery",
+												"text": "DROP VIEW IF EXISTS\nsilver.vw_trip_data_green;"
+											},
+											{
+												"type": "NonQuery",
+												"text": "CREATE VIEW silver.vw_trip_data_green\nAS\nSELECT\nresult.filepath(1) AS YEAR,\nresult.filepath(2) AS MONTH,\nresult.*\nFROM OPENROWSET(\n    BULK 'silver/trip_data_green/year=*/month=*/*.parquet',\n    DATA_SOURCE = 'nyc_taxi_src',\n    FORMAT = 'PARQUET'\n)\nWITH(\n    VendorID INT,\n    lpep_pickup_datetime DATETIME2(7),\n    lpep_dropoff_datetime DATETIME2(7),\n    store_and_fwd_flag CHAR(1),\n    RatecodeID INT,\n    PULocationID INT,\n    DOLocationID INT,\n    passenger_count INT,\n    trip_distance FLOAT,\n    fare_amount FLOAT,\n    extra FLOAT,\n    mta_tax FLOAT,\n    tip_amount FLOAT,\n    tolls_amount FLOAT,\n    ehail_fee INT,\n    improvement_surcharge FLOAT,\n    total_amount FLOAT,\n    payment_type INT,\n    trip_type INT,\n    congestion_surcharge FLOAT\n) AS [result];"
+											}
+										],
+										"scriptBlockExecutionTimeout": "02:00:00"
+									}
 								}
 							]
 						}
@@ -725,7 +809,7 @@
 					"name": "nyc_taxi/ldw"
 				},
 				"content": {
-					"query": "USE nyc_taxi_ldw;\n\n-- Create view from silver schema using OPENROWSET()\n\nCREATE VIEW silver.vw_trip_data_green\nAS\nSELECT\nresult.filepath(1) AS YEAR,\nresult.filepath(2) AS MONTH,\nresult.*\nFROM OPENROWSET(\n    BULK 'silver/trip_data_green/year=*/month=*/*.parquet',\n    DATA_SOURCE = 'nyc_taxi_src',\n    FORMAT = 'PARQUET'\n)\nWITH(\n    VendorID INT,\n    lpep_pickup_datetime DATETIME2(7),\n    lpep_dropoff_datetime DATETIME2(7),\n    store_and_fwd_flag CHAR(1),\n    RatecodeID INT,\n    PULocationID INT,\n    DOLocationID INT,\n    passenger_count INT,\n    trip_distance FLOAT,\n    fare_amount FLOAT,\n    extra FLOAT,\n    mta_tax FLOAT,\n    tip_amount FLOAT,\n    tolls_amount FLOAT,\n    ehail_fee INT,\n    improvement_surcharge FLOAT,\n    total_amount FLOAT,\n    payment_type INT,\n    trip_type INT,\n    congestion_surcharge FLOAT\n) AS [result];\n\nSELECT PULocationID, COUNT(1) FROM silver.vw_trip_data_green\nGROUP BY PULocationID\nHAVING COUNT(1) > 1;\n",
+					"query": "USE nyc_taxi_ldw;\n\n-- Create view from silver schema using OPENROWSET()\nDROP VIEW IF EXISTS\nsilver.vw_trip_data_green;\nCREATE VIEW silver.vw_trip_data_green\nAS\nSELECT\nresult.filepath(1) AS YEAR,\nresult.filepath(2) AS MONTH,\nresult.*\nFROM OPENROWSET(\n    BULK 'silver/trip_data_green/year=*/month=*/*.parquet',\n    DATA_SOURCE = 'nyc_taxi_src',\n    FORMAT = 'PARQUET'\n)\nWITH(\n    VendorID INT,\n    lpep_pickup_datetime DATETIME2(7),\n    lpep_dropoff_datetime DATETIME2(7),\n    store_and_fwd_flag CHAR(1),\n    RatecodeID INT,\n    PULocationID INT,\n    DOLocationID INT,\n    passenger_count INT,\n    trip_distance FLOAT,\n    fare_amount FLOAT,\n    extra FLOAT,\n    mta_tax FLOAT,\n    tip_amount FLOAT,\n    tolls_amount FLOAT,\n    ehail_fee INT,\n    improvement_surcharge FLOAT,\n    total_amount FLOAT,\n    payment_type INT,\n    trip_type INT,\n    congestion_surcharge FLOAT\n) AS [result];\n\nSELECT PULocationID, COUNT(1) FROM silver.vw_trip_data_green\nGROUP BY PULocationID\nHAVING COUNT(1) > 1;\n",
 					"metadata": {
 						"language": "sql"
 					},
