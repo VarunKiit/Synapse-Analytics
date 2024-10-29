@@ -16,6 +16,12 @@
 		},
 		"synapse-rg-wsn-WorkspaceDefaultStorage_properties_typeProperties_url": {
 			"value": "https://synapsergan.dfs.core.windows.net"
+		},
+		"ls_serverless_sql_pool_db_nyc_taxi_ldw_properties_typeProperties_server": {
+			"value": "synapse-rg-wsn-ondemand.sql.azuresynapse.net"
+		},
+		"ls_serverless_sql_pool_db_nyc_taxi_ldw_properties_typeProperties_database": {
+			"value": "nyc_taxi_ldw"
 		}
 	}
 }
