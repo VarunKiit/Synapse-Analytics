@@ -16,14 +16,6 @@
 			"type": "secureString",
 			"metadata": "Secure string for 'sasUri' of 'bing-covid-19-data'"
 		},
-		"ls_synapsergan_properties_typeProperties_url": {
-			"type": "string",
-			"defaultValue": "https://synapsergan.dfs.core.windows.net/"
-		},
-		"synapse-rg-wsn-WorkspaceDefaultStorage_properties_typeProperties_url": {
-			"type": "string",
-			"defaultValue": "https://synapsergan.dfs.core.windows.net"
-		},
 		"ls_serverless_sql_pool_db_nyc_taxi_ldw_properties_typeProperties_server": {
 			"type": "string",
 			"defaultValue": "synapse-rg-wsn-ondemand.sql.azuresynapse.net"
@@ -31,6 +23,14 @@
 		"ls_serverless_sql_pool_db_nyc_taxi_ldw_properties_typeProperties_database": {
 			"type": "string",
 			"defaultValue": "nyc_taxi_ldw"
+		},
+		"ls_synapsergan_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://synapsergan.dfs.core.windows.net/"
+		},
+		"synapse-rg-wsn-WorkspaceDefaultStorage_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://synapsergan.dfs.core.windows.net"
 		}
 	},
 	"variables": {
@@ -69,6 +69,43 @@
 								"enablePartitionDiscovery": false
 							}
 						}
+					},
+					{
+						"name": "Create_Silver_Taxi_zone",
+						"type": "Script",
+						"dependsOn": [
+							{
+								"activity": "Delete_Silver_Taxi_Zone_Folder",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"linkedServiceName": {
+							"referenceName": "ls_serverless_sql_pool_db_nyc_taxi_ldw",
+							"type": "LinkedServiceReference"
+						},
+						"typeProperties": {
+							"scripts": [
+								{
+									"type": "NonQuery",
+									"text": "IF OBJECT_ID('silver.taxi_zone') IS NOT NULL\n   DROP EXTERNAL TABLE silver.taxi_zone;"
+								},
+								{
+									"type": "NonQuery",
+									"text": "CREATE EXTERNAL TABLE silver.taxi_zone\nWITH(\n    LOCATION = 'silver/taxi_zone',\n    DATA_SOURCE = nyc_taxi_src,\n    FILE_FORMAT = parquet_file_format\n)\nAS\nSELECT *\n FROM bronze.taxi_zone;"
+								}
+							],
+							"scriptBlockExecutionTimeout": "02:00:00"
+						}
 					}
 				],
 				"policy": {
@@ -77,7 +114,8 @@
 				"annotations": []
 			},
 			"dependsOn": [
-				"[concat(variables('workspaceId'), '/datasets/ds_silver_taxi_zone')]"
+				"[concat(variables('workspaceId'), '/datasets/ds_silver_taxi_zone')]",
+				"[concat(variables('workspaceId'), '/linkedServices/ls_serverless_sql_pool_db_nyc_taxi_ldw')]"
 			]
 		},
 		{
@@ -117,6 +155,29 @@
 				}
 			},
 			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/ls_serverless_sql_pool_db_nyc_taxi_ldw')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"type": "AzureSqlDW",
+				"typeProperties": {
+					"server": "[parameters('ls_serverless_sql_pool_db_nyc_taxi_ldw_properties_typeProperties_server')]",
+					"database": "[parameters('ls_serverless_sql_pool_db_nyc_taxi_ldw_properties_typeProperties_database')]",
+					"encrypt": "mandatory",
+					"trustServerCertificate": false,
+					"authenticationType": "SystemAssignedManagedIdentity"
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
 		},
 		{
 			"name": "[concat(parameters('workspaceName'), '/ls_synapsergan')]",
@@ -678,7 +739,7 @@
 					"name": "nyc_taxi/ldw"
 				},
 				"content": {
-					"query": "USE nyc_taxi_ldw;\n\n-- create external table as select (CETAS) to convert csv -> parquet \nCREATE EXTERNAL TABLE silver.taxi_zone\nWITH(\n    LOCATION = 'silver/taxi_zone',\n    DATA_SOURCE = nyc_taxi_src,\n    FILE_FORMAT = parquet_file_format\n)\nAS\nSELECT *\n FROM bronze.taxi_zone;\n\n SELECT * from silver.taxi_zone\n WHERE LocationID = 43;\n\n -- DROP EXTERNAL TABLE silver.taxi_zone;",
+					"query": "USE nyc_taxi_ldw;\n\n-- create external table as select (CETAS) to convert csv -> parquet \nIF OBJECT_ID('silver.taxi_zone') IS NOT NULL\n   DROP EXTERNAL TABLE silver.taxi_zone\nGO\n\nCREATE EXTERNAL TABLE silver.taxi_zone\nWITH(\n    LOCATION = 'silver/taxi_zone',\n    DATA_SOURCE = nyc_taxi_src,\n    FILE_FORMAT = parquet_file_format\n)\nAS\nSELECT *\n FROM bronze.taxi_zone;\n\n SELECT * from silver.taxi_zone\n WHERE LocationID = 43;\n\n -- DROP EXTERNAL TABLE silver.taxi_zone;",
 					"metadata": {
 						"language": "sql"
 					},
@@ -875,29 +936,6 @@
 				"type": "SqlQuery"
 			},
 			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('workspaceName'), '/ls_serverless_sql_pool_db_nyc_taxi_ldw')]",
-			"type": "Microsoft.Synapse/workspaces/linkedServices",
-			"apiVersion": "2019-06-01-preview",
-			"properties": {
-				"annotations": [],
-				"type": "AzureSqlDW",
-				"typeProperties": {
-					"server": "[parameters('ls_serverless_sql_pool_db_nyc_taxi_ldw_properties_typeProperties_server')]",
-					"database": "[parameters('ls_serverless_sql_pool_db_nyc_taxi_ldw_properties_typeProperties_database')]",
-					"encrypt": "mandatory",
-					"trustServerCertificate": false,
-					"authenticationType": "SystemAssignedManagedIdentity"
-				},
-				"connectVia": {
-					"referenceName": "AutoResolveIntegrationRuntime",
-					"type": "IntegrationRuntimeReference"
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
-			]
 		}
 	]
 }
