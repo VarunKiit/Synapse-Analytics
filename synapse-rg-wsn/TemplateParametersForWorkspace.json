@@ -13,6 +13,9 @@
 		},
 		"synapse-rg-wsn-WorkspaceDefaultStorage_properties_typeProperties_url": {
 			"value": "https://synapsergan.dfs.core.windows.net"
+		},
+		"ls_synapsergan_properties_typeProperties_url": {
+			"value": "https://synapsergan.dfs.core.windows.net/"
 		}
 	}
 }
