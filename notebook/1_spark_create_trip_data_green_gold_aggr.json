@@ -17,7 +17,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "fdd7d24e-7cba-4226-83a7-4c4dac7eb4b2"
+				"spark.autotune.trackingId": "ed182f66-af07-4019-a0e2-ca7883f18ebb"
 			}
 		},
 		"metadata": {
@@ -101,7 +101,7 @@
 					"CREATE DATABASE IF NOT EXISTS nyc_taxi_spark\r\n",
 					"LOCATION 'abfss://nyc-taxi-data@synapsergan.dfs.core.windows.net/gold';"
 				],
-				"execution_count": 13
+				"execution_count": 40
 			},
 			{
 				"cell_type": "code",
@@ -117,7 +117,69 @@
 					}
 				},
 				"source": [
-					""
+					"#read silver data to be processed\r\n",
+					"trip_data_green_df = spark.read.parquet(f\"{silver_folder_path}/trip_data_green\")"
+				],
+				"execution_count": 41
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"trip_data_green_df.head()"
+				],
+				"execution_count": 42
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"#perform the required aggregation\r\n",
+					"#total trip count\r\n",
+					"#total fare amount\r\n",
+					"from pyspark.sql.functions import *\r\n",
+					"trip_data_green_agg_df = trip_data_green_df \\\r\n",
+					".groupBy(\"year\",\"month\", \"PULocationID\", \"DOLocationID\") \\\r\n",
+					".agg(count(lit(1)).alias(\"total_trip_count\"), round(sum(\"fare_amount\"),2).alias(\"total_fare_amount\"))"
+				],
+				"execution_count": 43
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"#write aggregated data to gold\r\n",
+					"trip_data_green_agg_df.write.mode(\"overwrite\").partitionBy(\"year\", \"month\").format(\"parquet\").saveAsTable(\"nyc_taxi_ldw_spark.trip_data_green_aggr\")"
 				],
 				"execution_count": null
 			}
