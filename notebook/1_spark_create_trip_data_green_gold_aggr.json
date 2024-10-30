@@ -17,7 +17,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "0bad7dc2-9ab4-4f89-995d-34a0dc2ce799"
+				"spark.autotune.trackingId": "fdd7d24e-7cba-4226-83a7-4c4dac7eb4b2"
 			}
 		},
 		"metadata": {
@@ -52,11 +52,11 @@
 				"cell_type": "code",
 				"source": [
 					"#set folder paths\r\n",
-					"bronze_folder_path = 'https://synapsergan.dfs.core.windows.net/nyc-taxi-data/raw/'\r\n",
-					"silver_folder_path = 'https://synapsergan.dfs.core.windows.net/nyc-taxi-data/silver/'\r\n",
-					"gold_folder_path = 'https://synapsergan.dfs.core.windows.net/nyc-taxi-data/gold/'"
+					"bronze_folder_path = 'abfss://nyc-taxi-data@synapsergan.dfs.core.windows.net/raw'\r\n",
+					"silver_folder_path = 'abfss://nyc-taxi-data@synapsergan.dfs.core.windows.net/silver'\r\n",
+					"gold_folder_path = 'abfss://nyc-taxi-data@synapsergan.dfs.core.windows.net/gold'"
 				],
-				"execution_count": 1
+				"execution_count": 12
 			},
 			{
 				"cell_type": "code",
@@ -75,7 +75,7 @@
 					"#Set spark config to get patitioned column year and month as strings ranter than integer\r\n",
 					"spark.conf.set(\"spark.sql.sources.partitionColumnTypeInference.enabled\", \"false\")"
 				],
-				"execution_count": 2
+				"execution_count": 14
 			},
 			{
 				"cell_type": "code",
@@ -98,10 +98,10 @@
 					"\r\n",
 					"--create database\r\n",
 					"\r\n",
-					"CREATE DATABASE IF NOT EXISTS nyc_taxi_ldw_spark\r\n",
-					"LOCATION 'abfss://nyc-taxi-data@synapsergan.dfs.core.windows.net/gold/';"
+					"CREATE DATABASE IF NOT EXISTS nyc_taxi_spark\r\n",
+					"LOCATION 'abfss://nyc-taxi-data@synapsergan.dfs.core.windows.net/gold';"
 				],
-				"execution_count": 6
+				"execution_count": 13
 			},
 			{
 				"cell_type": "code",
