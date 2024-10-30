@@ -125,40 +125,6 @@
 				}
 			},
 			{
-				"name": "Create Gold View_copy1",
-				"type": "Script",
-				"dependsOn": [],
-				"policy": {
-					"timeout": "0.12:00:00",
-					"retry": 0,
-					"retryIntervalInSeconds": 30,
-					"secureOutput": false,
-					"secureInput": false
-				},
-				"userProperties": [],
-				"linkedServiceName": {
-					"referenceName": "ls_serverless_sql_pool_db_nyc_taxi_ldw",
-					"type": "LinkedServiceReference"
-				},
-				"typeProperties": {
-					"scripts": [
-						{
-							"type": "NonQuery",
-							"text": "USE nyc_taxi_ldw;"
-						},
-						{
-							"type": "NonQuery",
-							"text": "DROP VIEW IF EXISTS gold.vw_trip_data_green;"
-						},
-						{
-							"type": "NonQuery",
-							"text": "CREATE VIEW gold.vw_trip_data_green\nAS\nSELECT\nresult.filepath(1) AS YEAR,\nresult.filepath(2) AS MONTH,\nresult.*\nFROM OPENROWSET(\n    BULK 'gold/trip_data_green/year=*/month=*/*.parquet',\n    DATA_SOURCE = 'nyc_taxi_src',\n    FORMAT = 'PARQUET'\n)\nWITH(\n    Borough VARCHAR(15),\n    trip_date DATE,\n    trip_day VARCHAR(10),\n    trip_day_weekend_ind CHAR(1),\n    card_trip_count INT,\n    cash_trip_count INT,\n    street_hall_trip_count INT,\n    dispatch_trip_count INT,\n    trip_distance FLOAT,\n    trip_duration INT,\n    fare_amount FLOAT\n) AS [result];"
-						}
-					],
-					"scriptBlockExecutionTimeout": "02:00:00"
-				}
-			},
-			{
 				"name": "Create Gold View",
 				"type": "Script",
 				"dependsOn": [
