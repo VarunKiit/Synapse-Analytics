@@ -1810,7 +1810,7 @@
 						"spark.dynamicAllocation.enabled": "false",
 						"spark.dynamicAllocation.minExecutors": "2",
 						"spark.dynamicAllocation.maxExecutors": "2",
-						"spark.autotune.trackingId": "cb4ba057-f4f1-497f-8acf-e537e44e9d12"
+						"spark.autotune.trackingId": "ace37540-f029-4ad3-bdad-5cc281c7e1fb"
 					}
 				},
 				"metadata": {
@@ -1846,12 +1846,12 @@
 						"metadata": {},
 						"source": [
 							"#set folder paths\r\n",
-							"bronze_folder_path = 'https://synapsergan.dfs.core.windows.net/nyc-taxi-data/raw/'\r\n",
-							"silver_folder_path = 'https://synapsergan.dfs.core.windows.net/nyc-taxi-data/silver/'\r\n",
-							"gold_folder_path = 'https://synapsergan.dfs.core.windows.net/nyc-taxi-data/gold/'"
+							"bronze_folder_path = 'abfss://nyc-taxi-data@synapsergan.dfs.core.windows.net/raw'\r\n",
+							"silver_folder_path = 'abfss://nyc-taxi-data@synapsergan.dfs.core.windows.net/silver'\r\n",
+							"gold_folder_path = 'abfss://nyc-taxi-data@synapsergan.dfs.core.windows.net/gold'"
 						],
 						"outputs": [],
-						"execution_count": 1
+						"execution_count": 12
 					},
 					{
 						"cell_type": "code",
@@ -1871,7 +1871,7 @@
 							"spark.conf.set(\"spark.sql.sources.partitionColumnTypeInference.enabled\", \"false\")"
 						],
 						"outputs": [],
-						"execution_count": 2
+						"execution_count": 14
 					},
 					{
 						"cell_type": "code",
@@ -1894,11 +1894,11 @@
 							"\r\n",
 							"--create database\r\n",
 							"\r\n",
-							"CREATE DATABASE IF NOT EXISTS nyc_taxi_ldw_spark\r\n",
-							"LOCATION 'abfss://nyc-taxi-data@synapsergan.dfs.core.windows.net/gold/';"
+							"CREATE DATABASE IF NOT EXISTS nyc_taxi_spark\r\n",
+							"LOCATION 'abfss://nyc-taxi-data@synapsergan.dfs.core.windows.net/gold';"
 						],
 						"outputs": [],
-						"execution_count": 6
+						"execution_count": 13
 					},
 					{
 						"cell_type": "code",
