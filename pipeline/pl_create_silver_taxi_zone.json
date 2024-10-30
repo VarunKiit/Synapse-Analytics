@@ -66,6 +66,9 @@
 				}
 			}
 		],
+		"folder": {
+			"name": "demo"
+		},
 		"annotations": []
 	}
 }
