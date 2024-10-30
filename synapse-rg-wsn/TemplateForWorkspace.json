@@ -12,6 +12,10 @@
 			"metadata": "Secure string for 'connectionString' of 'synapse-rg-wsn-WorkspaceDefaultSqlServer'",
 			"defaultValue": "Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=tcp:synapse-rg-wsn.sql.azuresynapse.net,1433;Initial Catalog=@{linkedService().DBName}"
 		},
+		"ls_cosmosDB_nyc_taxi_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'ls_cosmosDB_nyc_taxi'"
+		},
 		"bing-covid-19-data_sasUri": {
 			"type": "secureString",
 			"metadata": "Secure string for 'sasUri' of 'bing-covid-19-data'"
@@ -1810,7 +1814,7 @@
 						"spark.dynamicAllocation.enabled": "false",
 						"spark.dynamicAllocation.minExecutors": "2",
 						"spark.dynamicAllocation.maxExecutors": "2",
-						"spark.autotune.trackingId": "6ceede55-bc3c-42d2-adfc-675680334020"
+						"spark.autotune.trackingId": "a64e3e48-acda-4ba5-8cb2-7e0c874242fa"
 					}
 				},
 				"metadata": {
@@ -1835,15 +1839,13 @@
 						"sparkVersion": "3.4",
 						"nodeCount": 3,
 						"cores": 4,
-						"memory": 28,
-						"automaticScaleJobs": false
+						"memory": 28
 					},
 					"sessionKeepAliveTimeout": 30
 				},
 				"cells": [
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"#set folder paths\r\n",
 							"bronze_folder_path = 'abfss://nyc-taxi-data@synapsergan.dfs.core.windows.net/raw'\r\n",
@@ -2012,6 +2014,25 @@
 			},
 			"dependsOn": [],
 			"location": "southeastasia"
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/ls_cosmosDB_nyc_taxi')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"type": "CosmosDb",
+				"typeProperties": {
+					"connectionString": "[parameters('ls_cosmosDB_nyc_taxi_connectionString')]"
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
 		}
 	]
 }

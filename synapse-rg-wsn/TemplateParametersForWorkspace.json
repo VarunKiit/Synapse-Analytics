@@ -8,6 +8,9 @@
 		"synapse-rg-wsn-WorkspaceDefaultSqlServer_connectionString": {
 			"value": "Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=tcp:synapse-rg-wsn.sql.azuresynapse.net,1433;Initial Catalog=@{linkedService().DBName}"
 		},
+		"ls_cosmosDB_nyc_taxi_connectionString": {
+			"value": ""
+		},
 		"bing-covid-19-data_sasUri": {
 			"value": ""
 		},
